@@ -10,8 +10,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::view('dashboard', 'pages.admin.dashboard')->name('dashboard');
-    Route::livewire('categories', 'pages.admin.categories.index')->name('categories.index');
-    Route::livewire('products', 'pages.admin.products.index')->name('products.index');
+    Route::livewire('categories', 'pages::admin.categories.index')->name('categories.index');
+    Route::livewire('products', 'pages::admin.products.index')->name('products.index');
 });
 
 require __DIR__.'/settings.php';

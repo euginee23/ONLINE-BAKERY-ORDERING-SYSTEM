@@ -22,6 +22,12 @@
                     <flux:sidebar.item icon="squares-2x2" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
                         {{ __('Admin Dashboard') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="tag" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.index')" wire:navigate>
+                        {{ __('Categories') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="shopping-bag" :href="route('admin.products.index')" :current="request()->routeIs('admin.products.index')" wire:navigate>
+                        {{ __('Products') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endif
             </flux:sidebar.nav>

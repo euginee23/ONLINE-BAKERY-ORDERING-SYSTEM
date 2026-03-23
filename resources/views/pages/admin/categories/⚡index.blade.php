@@ -2,11 +2,12 @@
 
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
-new class extends Component {
+new #[Title('Manage Categories')] class extends Component {
     use WithFileUploads, WithPagination;
 
     public bool $showModal = false;
@@ -117,8 +118,7 @@ new class extends Component {
 
 ?>
 
-<x-layouts::app :title="__('Manage Categories')">
-    <div class="flex h-full w-full flex-1 flex-col gap-6">
+<section class="flex h-full w-full flex-1 flex-col gap-6">
         <div class="flex items-center justify-between">
             <div>
                 <flux:heading size="xl">{{ __('Categories') }}</flux:heading>
@@ -240,4 +240,4 @@ new class extends Component {
             </div>
         </flux:modal>
     </div>
-</x-layouts::app>
+</section>
