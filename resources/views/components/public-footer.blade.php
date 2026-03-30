@@ -2,9 +2,10 @@
 
 @php
     $bakeryName = Setting::get('bakery_name', 'ONLINE BAKERY ORDERING SYSTEM');
-    $bakeryAddress = Setting::get('bakery_address', '123 Baker Street, Manila, Philippines');
-    $bakeryPhone = Setting::get('bakery_phone', '+63 912 345 6789');
-    $bakeryEmail = Setting::get('bakery_email', 'info@bakerysystem.com');
+    $businessAddress = Setting::get('business_address');
+    $contactNumber = Setting::get('contact_number');
+    $businessEmail = Setting::get('business_email');
+    $businessHours = Setting::get('business_hours');
 @endphp
 
 <footer id="contact" class="border-t bg-zinc-950 border-zinc-800">
@@ -38,46 +39,44 @@
             <div>
                 <h3 class="mb-4 text-sm font-semibold tracking-wider text-white uppercase">Contact Us</h3>
                 <ul class="space-y-3">
-                    <li class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 size-4 shrink-0 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span class="text-sm text-zinc-400">{{ $bakeryAddress }}</span>
-                    </li>
-                    <li class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 shrink-0 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        <span class="text-sm text-zinc-400">{{ $bakeryPhone }}</span>
-                    </li>
-                    <li class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 shrink-0 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span class="text-sm text-zinc-400">{{ $bakeryEmail }}</span>
-                    </li>
+                    @if ($businessAddress)
+                        <li class="flex items-start gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 size-4 shrink-0 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span class="text-sm text-zinc-400">{{ $businessAddress }}</span>
+                        </li>
+                    @endif
+                    @if ($contactNumber)
+                        <li class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4 shrink-0 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            <span class="text-sm text-zinc-400">{{ $contactNumber }}</span>
+                        </li>
+                    @endif
+                    @if ($businessEmail)
+                        <li class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4 shrink-0 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span class="text-sm text-zinc-400">{{ $businessEmail }}</span>
+                        </li>
+                    @endif
+                    @if (! $businessAddress && ! $contactNumber && ! $businessEmail)
+                        <li class="text-sm text-zinc-500">Contact details not yet available.</li>
+                    @endif
                 </ul>
             </div>
 
             {{-- Operating Hours --}}
-            <div>
-                <h3 class="mb-4 text-sm font-semibold tracking-wider text-white uppercase">Operating Hours</h3>
-                <ul class="space-y-3">
-                    <li class="flex justify-between text-sm">
-                        <span class="text-zinc-400">Monday - Friday</span>
-                        <span class="font-medium text-zinc-300">6:00 AM - 8:00 PM</span>
-                    </li>
-                    <li class="flex justify-between text-sm">
-                        <span class="text-zinc-400">Saturday</span>
-                        <span class="font-medium text-zinc-300">7:00 AM - 9:00 PM</span>
-                    </li>
-                    <li class="flex justify-between text-sm">
-                        <span class="text-zinc-400">Sunday</span>
-                        <span class="font-medium text-zinc-300">7:00 AM - 6:00 PM</span>
-                    </li>
-                </ul>
-            </div>
+            @if ($businessHours)
+                <div>
+                    <h3 class="mb-4 text-sm font-semibold tracking-wider text-white uppercase">Operating Hours</h3>
+                    <p class="text-sm leading-relaxed whitespace-pre-line text-zinc-400">{{ $businessHours }}</p>
+                </div>
+            @endif
         </div>
 
         {{-- Bottom Bar --}}

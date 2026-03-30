@@ -2,6 +2,7 @@
 
 @php
     $bakeryName = Setting::get('bakery_name', 'ONLINE BAKERY ORDERING SYSTEM');
+    $businessName = Setting::get('business_name', $bakeryName);
     $businessOwner = Setting::get('business_owner');
     $contactNumber = Setting::get('contact_number');
     $businessEmail = Setting::get('business_email');
@@ -14,8 +15,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
-        @include('partials.head')
-        <title>{{ $bakeryName }}</title>
+        @include('partials.head', ['title' => $businessName])
     </head>
     <body class="min-h-screen antialiased bg-white text-zinc-900 dark:bg-zinc-950 dark:text-white">
 
@@ -191,7 +191,7 @@
                                 <span class="text-3xl">🧁</span>
                             </div>
                             <div>
-                                <h3 class="text-2xl font-black text-zinc-900 dark:text-white">{{ $bakeryName }}</h3>
+                                <h3 class="text-2xl font-black text-zinc-900 dark:text-white">{{ $businessName }}</h3>
                                 @if($businessOwner)
                                     <p class="text-sm text-zinc-500 dark:text-zinc-400">Owned by <span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ $businessOwner }}</span></p>
                                 @endif
