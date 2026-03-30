@@ -276,7 +276,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                             <td class="px-6 py-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">₱{{ number_format($product->price, 2) }}</td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold {{ $product->stock > 10 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : ($product->stock > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300') }}">
-                                    {{ $product->stock }} {{ __('units') }}
+                                    {{ $product->stock }} {{ __('pieces') }}
                                 </span>
                             </td>
                         </tr>

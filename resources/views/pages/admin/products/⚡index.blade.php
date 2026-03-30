@@ -351,7 +351,7 @@ new #[Layout('layouts.admin'), Title('Manage Products')] class extends Component
                         <td class="px-6 py-5">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-bold {{ $product->stock > 10 ? 'text-emerald-600 dark:text-emerald-400' : ($product->stock > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
-                                    {{ $product->stock }} {{ __('units') }}
+                                    {{ $product->stock }} {{ __('pieces') }}
                                 </span>
                                 @if ($product->stock === 0)
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
