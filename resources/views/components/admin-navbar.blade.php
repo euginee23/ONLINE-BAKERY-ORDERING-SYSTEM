@@ -15,7 +15,7 @@
                 <div class="flex items-center justify-center rounded-lg size-9 bg-gold-700 dark:bg-gold-500">
                     <x-app-logo-icon class="text-white size-5 fill-current dark:text-zinc-900" />
                 </div>
-                <span class="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">{{ $bakeryName }}</span>
+                <span class="hidden sm:block text-lg font-bold tracking-tight text-zinc-900 dark:text-white truncate max-w-[160px] lg:max-w-none">{{ $bakeryName }}</span>
             </a>
 
             {{-- Desktop Nav --}}

@@ -23,7 +23,7 @@ new #[Layout('layouts.customer'), Title('Dashboard')] class extends Component {
 <div class="flex flex-col gap-6">
     {{-- Welcome Header --}}
     <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-        <h1 class="text-3xl font-bold bg-linear-to-r from-amber-600 to-orange-800 bg-clip-text text-transparent">
+        <h1 class="text-2xl sm:text-3xl font-bold bg-linear-to-r from-amber-600 to-orange-800 bg-clip-text text-transparent">
             Welcome back, {{ auth()->user()->name }}!
         </h1>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -118,7 +118,7 @@ new #[Layout('layouts.customer'), Title('Dashboard')] class extends Component {
             </div>
             <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
                 @foreach($recentOrders as $order)
-                    <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
                         <div class="flex items-center gap-3">
                             <div class="flex items-center justify-center rounded-lg size-9 bg-zinc-100 dark:bg-zinc-700">
                                 <svg class="size-4 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

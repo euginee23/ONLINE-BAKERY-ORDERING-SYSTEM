@@ -31,7 +31,7 @@ new #[Layout('layouts.customer'), Title('My Orders')] class extends Component {
     {{-- Header --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-3xl font-bold text-zinc-900 dark:text-white">My Orders</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">My Orders</h1>
             <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Track all your bakery orders here.</p>
         </div>
         <a

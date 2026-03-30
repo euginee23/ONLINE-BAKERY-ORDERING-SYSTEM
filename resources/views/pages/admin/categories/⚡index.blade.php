@@ -126,8 +126,8 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
 
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Header --}}
-    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-        <h1 class="text-3xl font-bold bg-linear-to-r from-amber-600 to-orange-800 bg-clip-text text-transparent">
+    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
+        <h1 class="text-2xl sm:text-3xl font-bold bg-linear-to-r from-amber-600 to-orange-800 bg-clip-text text-transparent">
             {{ __('Categories') }}
         </h1>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -136,10 +136,10 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
     </div>
 
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
             <div class="absolute inset-0 bg-linear-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-amber-500 to-orange-600 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,13 +148,13 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
                     </div>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Total Categories') }}</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalCategories }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalCategories }}</p>
             </div>
         </div>
 
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
             <div class="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-emerald-500 to-green-600 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,13 +163,13 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
                     </div>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Active Categories') }}</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $activeCategories }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $activeCategories }}</p>
             </div>
         </div>
 
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
             <div class="absolute inset-0 bg-linear-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-orange-500 to-red-500 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,14 +178,14 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
                     </div>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Total Products') }}</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $categories->sum('products_count') }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $categories->sum('products_count') }}</p>
             </div>
         </div>
     </div>
 
     {{-- Table --}}
     <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-md overflow-hidden border border-zinc-200 dark:border-zinc-700">
-        <div class="bg-linear-to-r from-zinc-50 to-slate-50 dark:from-zinc-800 dark:to-zinc-800 px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+        <div class="bg-linear-to-r from-zinc-50 to-slate-50 dark:from-zinc-800 dark:to-zinc-800 px-4 py-4 sm:px-6 border-b border-zinc-200 dark:border-zinc-700 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-2">
                 <svg class="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
@@ -204,6 +204,7 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
             </button>
         </div>
 
+        <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-zinc-100 dark:bg-zinc-800/70 border-b-2 border-zinc-200 dark:border-zinc-700">
                 <tr>
@@ -300,6 +301,7 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
                 @endforelse
             </tbody>
         </table>
+        </div>
 
         {{-- Pagination --}}
         @if ($categories->hasPages())

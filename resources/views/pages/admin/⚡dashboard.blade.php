@@ -31,8 +31,8 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
 
 <div class="flex h-full w-full flex-1 flex-col gap-6">
     {{-- Header --}}
-    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-        <h1 class="text-3xl font-bold bg-linear-to-r from-amber-600 to-orange-800 bg-clip-text text-transparent">
+    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
+        <h1 class="text-2xl sm:text-3xl font-bold bg-linear-to-r from-amber-600 to-orange-800 bg-clip-text text-transparent">
             {{ __('Admin Dashboard') }}
         </h1>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -41,11 +41,11 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
     </div>
 
     {{-- Stat Cards Row 1: Catalog --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {{-- Total Products --}}
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
             <div class="absolute inset-0 bg-linear-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-amber-500 to-orange-600 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     </span>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Total Products') }}</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalProducts }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalProducts }}</p>
                 <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('items in catalog') }}</p>
             </div>
         </div>
@@ -65,7 +65,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
         {{-- Total Categories --}}
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
             <div class="absolute inset-0 bg-linear-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-orange-500 to-red-500 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     </span>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Categories') }}</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalCategories }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalCategories }}</p>
                 <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('product categories') }}</p>
             </div>
         </div>
@@ -85,7 +85,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
         {{-- Available Products --}}
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
             <div class="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-emerald-500 to-green-600 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +97,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     </span>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Available') }}</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $availableProducts }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $availableProducts }}</p>
                 <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('ready for ordering') }}</p>
             </div>
         </div>
@@ -105,7 +105,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
         {{-- Out of Stock --}}
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
             <div class="absolute inset-0 bg-linear-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-red-500 to-rose-600 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,20 +117,17 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     </span>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Out of Stock') }}</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $outOfStock }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $outOfStock }}</p>
                 <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('items need restocking') }}</p>
             </div>
         </div>
     </div>
 
-    {{-- Quick Actions & Recent Products --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
     {{-- Stat Cards Row 2: Orders --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         {{-- Total Orders --}}
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-violet-500 to-purple-600 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,14 +137,14 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     <span class="px-3 py-1 text-xs font-semibold text-violet-700 bg-violet-100 dark:text-violet-300 dark:bg-violet-900/30 rounded-full">All Time</span>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Total Orders</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalOrders }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $totalOrders }}</p>
                 <a href="{{ route('admin.orders.index') }}" wire:navigate class="text-xs text-violet-600 dark:text-violet-400 hover:underline">View all orders →</a>
             </div>
         </div>
 
         {{-- Pending Orders --}}
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-yellow-400 to-orange-500 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,14 +154,14 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     <span class="px-3 py-1 text-xs font-semibold text-yellow-700 bg-yellow-100 dark:text-yellow-300 dark:bg-yellow-900/30 rounded-full">Action Needed</span>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Pending Orders</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $pendingOrders }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $pendingOrders }}</p>
                 <a href="{{ route('admin.orders.index') }}" wire:navigate class="text-xs text-yellow-600 dark:text-yellow-400 hover:underline">Review pending →</a>
             </div>
         </div>
 
         {{-- Processing Orders --}}
         <div class="group relative bg-white dark:bg-zinc-800 rounded-2xl shadow-md hover:shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
-            <div class="relative p-6">
+            <div class="relative p-4 sm:p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-3 bg-linear-to-br from-blue-500 to-cyan-500 rounded-xl shadow-md">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +171,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     <span class="px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30 rounded-full">In Progress</span>
                 </div>
                 <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Processing</p>
-                <p class="text-4xl font-bold text-zinc-900 dark:text-white">{{ $processingOrders }}</p>
+                <p class="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">{{ $processingOrders }}</p>
                 <a href="{{ route('admin.orders.index') }}" wire:navigate class="text-xs text-blue-600 dark:text-blue-400 hover:underline">View processing →</a>
             </div>
         </div>
@@ -244,6 +241,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     {{ __('View All →') }}
                 </a>
             </div>
+            <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-zinc-100 dark:bg-zinc-800/70 border-b border-zinc-200 dark:border-zinc-700">
                     <tr>
@@ -291,6 +289,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
@@ -307,6 +306,7 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                 View All →
             </a>
         </div>
+        <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-zinc-100 dark:bg-zinc-800/70 border-b border-zinc-200 dark:border-zinc-700">
                 <tr>
@@ -340,5 +340,6 @@ new #[Layout('layouts.admin'), Title('Admin Dashboard')] class extends Component
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </div>
