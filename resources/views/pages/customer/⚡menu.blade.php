@@ -37,7 +37,7 @@ new #[Layout('layouts.customer'), Title('Browse Menu')] class extends Component 
         $query = Product::with('category')->available();
 
         if ($this->categoryFilter) {
-            $query->whereHas('category', fn ($q) => $q->where('slug', $this->categoryFilter)->orWhere('id', $this->categoryFilter));
+            $query->whereHas('category', fn ($q) => $q->where('id', $this->categoryFilter));
         }
 
         if ($this->search) {
