@@ -2,10 +2,11 @@
 
 use App\Models\UserAddress;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Addresses')] class extends Component {
+new #[Layout('layouts.settings'), Title('Addresses')] class extends Component {
     public string $label = '';
 
     public string $address = '';
