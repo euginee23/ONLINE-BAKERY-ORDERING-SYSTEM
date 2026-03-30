@@ -20,6 +20,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::livewire('categories', 'pages::admin.categories.index')->name('categories.index');
     Route::livewire('products', 'pages::admin.products.index')->name('products.index');
     Route::livewire('orders', 'pages::admin.orders.index')->name('orders.index');
+    Route::livewire('business-settings', 'pages::admin.business-settings')->name('business-settings');
 });
 
 require __DIR__.'/settings.php';

@@ -2,6 +2,13 @@
 
 @php
     $bakeryName = Setting::get('bakery_name', 'ONLINE BAKERY ORDERING SYSTEM');
+    $businessOwner = Setting::get('business_owner');
+    $contactNumber = Setting::get('contact_number');
+    $businessEmail = Setting::get('business_email');
+    $businessAddress = Setting::get('business_address');
+    $businessDescription = Setting::get('business_description');
+    $businessHours = Setting::get('business_hours');
+    $hasBusinessInfo = $businessOwner || $contactNumber || $businessAddress;
 @endphp
 
 <!DOCTYPE html>
@@ -158,6 +165,93 @@
                 </div>
             </div>
         </section>
+
+        {{-- ==================== Business Info Section ==================== --}}
+        @if($hasBusinessInfo)
+        <section id="contact" class="py-20 sm:py-28">
+            <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div class="max-w-2xl mx-auto mb-12 text-center sm:mb-16">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 mb-4 text-sm font-medium border rounded-full bg-gold-50 text-gold-700 border-gold-200 dark:bg-gold-950/50 dark:text-gold-400 dark:border-gold-800">
+                        <span class="text-base">🏪</span>
+                        <span>About Us</span>
+                    </div>
+                    <h2 class="text-3xl font-black tracking-tight sm:text-4xl text-zinc-900 dark:text-white">
+                        Meet Your <span class="text-transparent bg-gradient-to-r from-gold-600 to-gold-700 bg-clip-text dark:from-gold-400 dark:to-gold-500">Bakery</span>
+                    </h2>
+                    @if($businessDescription)
+                        <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ $businessDescription }}</p>
+                    @endif
+                </div>
+
+                <div class="max-w-3xl mx-auto overflow-hidden bg-white border shadow-xl dark:bg-zinc-900 rounded-3xl border-zinc-200 dark:border-zinc-700 shadow-zinc-900/10 dark:shadow-zinc-950/50">
+                    <div class="h-2 bg-gradient-to-r from-gold-500 to-gold-700"></div>
+                    <div class="p-8 sm:p-10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="flex items-center justify-center rounded-2xl size-16 bg-gold-100 dark:bg-gold-900/30 shrink-0">
+                                <span class="text-3xl">🧁</span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-zinc-900 dark:text-white">{{ $bakeryName }}</h3>
+                                @if($businessOwner)
+                                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Owned by <span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ $businessOwner }}</span></p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            @if($contactNumber)
+                                <div class="flex items-start gap-3">
+                                    <div class="flex items-center justify-center mt-0.5 rounded-xl size-9 bg-gold-50 dark:bg-gold-900/20 shrink-0">
+                                        <svg class="text-gold-600 dark:text-gold-400 size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Phone</p>
+                                        <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">{{ $contactNumber }}</p>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($businessEmail)
+                                <div class="flex items-start gap-3">
+                                    <div class="flex items-center justify-center mt-0.5 rounded-xl size-9 bg-gold-50 dark:bg-gold-900/20 shrink-0">
+                                        <svg class="text-gold-600 dark:text-gold-400 size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Email</p>
+                                        <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">{{ $businessEmail }}</p>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($businessAddress)
+                                <div class="flex items-start gap-3 sm:col-span-2">
+                                    <div class="flex items-center justify-center mt-0.5 rounded-xl size-9 bg-gold-50 dark:bg-gold-900/20 shrink-0">
+                                        <svg class="text-gold-600 dark:text-gold-400 size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Store Address</p>
+                                        <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">{{ $businessAddress }}</p>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($businessHours)
+                                <div class="flex items-start gap-3 sm:col-span-2">
+                                    <div class="flex items-center justify-center mt-0.5 rounded-xl size-9 bg-gold-50 dark:bg-gold-900/20 shrink-0">
+                                        <svg class="text-gold-600 dark:text-gold-400 size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Business Hours</p>
+                                        <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">{{ $businessHours }}</p>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        @endif
 
         {{-- ==================== CTA Section ==================== --}}
         <section class="relative py-20 overflow-hidden sm:py-28">

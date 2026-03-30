@@ -10,13 +10,18 @@ test('addresses page is displayed', function () {
     $this->get(route('addresses.edit'))->assertOk();
 });
 
-test('user can add an address', function () {
+test('user can add a philippine address', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
     Livewire::test('pages::settings.addresses')
-        ->set('address', '123 Bakery Lane, Manila')
+        ->set('houseStreet', '123 Rizal Street')
+        ->set('barangay', 'San Jose')
+        ->set('city', 'Marikina City')
+        ->set('province', 'Metro Manila')
+        ->set('region', 'NCR')
+        ->set('zipCode', '1800')
         ->set('label', 'Home')
         ->call('addAddress')
         ->assertHasNoErrors();
@@ -24,19 +29,55 @@ test('user can add an address', function () {
     expect($user->addresses()->count())->toBe(1);
 
     $addr = $user->addresses()->first();
-    expect($addr->address)->toBe('123 Bakery Lane, Manila');
+    expect($addr->house_street)->toBe('123 Rizal Street');
+    expect($addr->barangay)->toBe('San Jose');
+    expect($addr->city)->toBe('Marikina City');
+    expect($addr->province)->toBe('Metro Manila');
+    expect($addr->zip_code)->toBe('1800');
     expect($addr->label)->toBe('Home');
 });
 
-test('address field is required', function () {
+test('required address fields are validated', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
     Livewire::test('pages::settings.addresses')
-        ->set('address', '')
+        ->set('houseStreet', '')
+        ->set('barangay', '')
+        ->set('city', '')
+        ->set('province', '')
+        ->set('zipCode', '')
         ->call('addAddress')
-        ->assertHasErrors(['address' => 'required']);
+        ->assertHasErrors(['houseStreet', 'barangay', 'city', 'province', 'zipCode']);
+});
+
+test('zip code must be 4 digits', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::settings.addresses')
+        ->set('houseStreet', '123 Rizal St')
+        ->set('barangay', 'San Jose')
+        ->set('city', 'Marikina City')
+        ->set('province', 'Metro Manila')
+        ->set('zipCode', '12345')
+        ->call('addAddress')
+        ->assertHasErrors(['zipCode']);
+});
+
+test('address formatted attribute returns correct string', function () {
+    $addr = UserAddress::factory()->create([
+        'house_street' => '123 Rizal Street',
+        'barangay' => 'San Jose',
+        'city' => 'Marikina City',
+        'province' => 'Metro Manila',
+        'region' => 'NCR',
+        'zip_code' => '1800',
+    ]);
+
+    expect($addr->formatted)->toBe('123 Rizal Street, Brgy. San Jose, Marikina City, Metro Manila, NCR, 1800');
 });
 
 test('user can set a default address', function () {

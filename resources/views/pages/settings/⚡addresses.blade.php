@@ -9,7 +9,17 @@ use Livewire\Component;
 new #[Layout('layouts.settings'), Title('Addresses')] class extends Component {
     public string $label = '';
 
-    public string $address = '';
+    public string $houseStreet = '';
+
+    public string $barangay = '';
+
+    public string $city = '';
+
+    public string $province = '';
+
+    public string $region = '';
+
+    public string $zipCode = '';
 
     public bool $showAddForm = false;
 
@@ -24,8 +34,24 @@ new #[Layout('layouts.settings'), Title('Addresses')] class extends Component {
     protected function rules(): array
     {
         return [
-            'address' => ['required', 'string', 'max:500'],
             'label' => ['nullable', 'string', 'max:100'],
+            'houseStreet' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:100'],
+            'city' => ['required', 'string', 'max:100'],
+            'province' => ['required', 'string', 'max:100'],
+            'region' => ['nullable', 'string', 'max:100'],
+            'zipCode' => ['required', 'digits:4'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function messages(): array
+    {
+        return [
+            'houseStreet.required' => 'The house/street field is required.',
+            'zipCode.digits' => 'The ZIP code must be exactly 4 digits.',
         ];
     }
 
@@ -33,9 +59,17 @@ new #[Layout('layouts.settings'), Title('Addresses')] class extends Component {
     {
         $validated = $this->validate($this->rules());
 
-        Auth::user()->addresses()->create($validated);
+        Auth::user()->addresses()->create([
+            'label' => $validated['label'] ?: null,
+            'house_street' => $validated['houseStreet'],
+            'barangay' => $validated['barangay'],
+            'city' => $validated['city'],
+            'province' => $validated['province'],
+            'region' => $validated['region'] ?: null,
+            'zip_code' => $validated['zipCode'],
+        ]);
 
-        $this->reset('label', 'address');
+        $this->reset('label', 'houseStreet', 'barangay', 'city', 'province', 'region', 'zipCode');
         $this->showAddForm = false;
 
         $this->dispatch('address-saved');
@@ -88,7 +122,11 @@ new #[Layout('layouts.settings'), Title('Addresses')] class extends Component {
                                 <flux:badge color="lime" size="sm">{{ __('Default') }}</flux:badge>
                             @endif
                         </div>
-                        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $addr->address }}</p>
+                        <p class="mt-1 text-sm text-zinc-800 dark:text-zinc-200">{{ $addr->house_street }}</p>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Brgy. {{ $addr->barangay }}, {{ $addr->city }}, {{ $addr->province }}</p>
+                        <p class="text-sm text-zinc-500 dark:text-zinc-500">
+                            @if ($addr->region) {{ $addr->region }},  @endif{{ $addr->zip_code }}
+                        </p>
                     </div>
                     <div class="flex shrink-0 items-center gap-2">
                         @unless ($addr->is_default)
@@ -146,15 +184,75 @@ new #[Layout('layouts.settings'), Title('Addresses')] class extends Component {
                     </flux:field>
 
                     <flux:field>
-                        <flux:label>{{ __('Address') }}</flux:label>
-                        <flux:textarea
-                            wire:model="address"
-                            rows="3"
-                            placeholder="{{ __('Street, City, Province, ZIP') }}"
-                            required
+                        <flux:label>{{ __('House No. / Street') }}</flux:label>
+                        <flux:input
+                            wire:model="houseStreet"
+                            type="text"
+                            placeholder="{{ __('e.g. 123 Rizal Street') }}"
+                            autocomplete="off"
                         />
-                        <flux:error name="address" />
+                        <flux:error name="houseStreet" />
                     </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Barangay') }}</flux:label>
+                        <flux:input
+                            wire:model="barangay"
+                            type="text"
+                            placeholder="{{ __('e.g. Barangay San Jose') }}"
+                            autocomplete="off"
+                        />
+                        <flux:error name="barangay" />
+                    </flux:field>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <flux:field>
+                            <flux:label>{{ __('City / Municipality') }}</flux:label>
+                            <flux:input
+                                wire:model="city"
+                                type="text"
+                                placeholder="{{ __('e.g. Marikina City') }}"
+                                autocomplete="off"
+                            />
+                            <flux:error name="city" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('Province') }}</flux:label>
+                            <flux:input
+                                wire:model="province"
+                                type="text"
+                                placeholder="{{ __('e.g. Metro Manila') }}"
+                                autocomplete="off"
+                            />
+                            <flux:error name="province" />
+                        </flux:field>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <flux:field>
+                            <flux:label>{{ __('Region') }} <flux:text class="inline text-zinc-400">({{ __('optional') }})</flux:text></flux:label>
+                            <flux:input
+                                wire:model="region"
+                                type="text"
+                                placeholder="{{ __('e.g. NCR') }}"
+                                autocomplete="off"
+                            />
+                            <flux:error name="region" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('ZIP Code') }}</flux:label>
+                            <flux:input
+                                wire:model="zipCode"
+                                type="text"
+                                placeholder="{{ __('e.g. 1800') }}"
+                                maxlength="4"
+                                autocomplete="off"
+                            />
+                            <flux:error name="zipCode" />
+                        </flux:field>
+                    </div>
 
                     <div class="flex items-center gap-3">
                         <flux:button type="submit" variant="primary" wire:loading.attr="disabled">

@@ -42,7 +42,7 @@ test('customer can place a pickup order', function () {
     expect(app(CartService::class)->isEmpty())->toBeTrue();
 });
 
-test('delivery order requires address', function () {
+test('delivery order requires address when using new address', function () {
     $user = User::factory()->create();
     $product = Product::factory()->create(['price' => 100, 'stock' => 10]);
 
@@ -53,9 +53,14 @@ test('delivery order requires address', function () {
 
     Livewire\Livewire::test('pages::customer.checkout')
         ->set('type', 'delivery')
-        ->set('deliveryAddress', '')
+        ->set('useNewAddress', true)
+        ->set('houseStreet', '')
+        ->set('barangay', '')
+        ->set('city', '')
+        ->set('province', '')
+        ->set('zipCode', '')
         ->call('placeOrder')
-        ->assertHasErrors(['deliveryAddress']);
+        ->assertHasErrors(['houseStreet', 'barangay', 'city', 'province', 'zipCode']);
 });
 
 test('customer can view their own order detail', function () {

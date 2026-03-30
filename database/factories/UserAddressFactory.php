@@ -19,7 +19,12 @@ class UserAddressFactory extends Factory
         return [
             'user_id' => \App\Models\User::factory(),
             'label' => fake()->randomElement(['Home', 'Work', 'Other', null]),
-            'address' => fake()->address(),
+            'house_street' => fake()->buildingNumber().' '.fake()->streetName(),
+            'barangay' => fake()->randomElement(['San Jose', 'Santa Cruz', 'Poblacion', 'Bagong Silang', 'Sto. Nino']),
+            'city' => fake()->randomElement(['Marikina City', 'Quezon City', 'Manila', 'Pasig', 'Makati']),
+            'province' => fake()->randomElement(['Metro Manila', 'Rizal', 'Bulacan', 'Cavite', 'Laguna']),
+            'region' => fake()->randomElement(['NCR', 'Region IV-A', 'Region III', null]),
+            'zip_code' => fake()->numerify('####'),
             'is_default' => false,
         ];
     }

@@ -64,6 +64,17 @@
                 >
                     Orders
                 </a>
+                <a
+                    href="{{ route('admin.business-settings') }}"
+                    wire:navigate
+                    @class([
+                        'px-3 py-2 text-sm font-medium transition rounded-lg',
+                        'text-gold-700 bg-gold-50 dark:text-gold-400 dark:bg-gold-900/20' => request()->routeIs('admin.business-settings'),
+                        'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800' => ! request()->routeIs('admin.business-settings'),
+                    ])
+                >
+                    Settings
+                </a>
             </nav>
 
             {{-- Desktop Actions --}}
@@ -204,6 +215,7 @@
                 <a href="{{ route('admin.categories.index') }}" wire:navigate x-on:click="mobileOpen = false" @class(['px-3 py-2 text-sm font-medium transition rounded-lg', 'text-gold-700 bg-gold-50 dark:text-gold-400 dark:bg-gold-900/20' => request()->routeIs('admin.categories.index'), 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800' => ! request()->routeIs('admin.categories.index')])>Categories</a>
                 <a href="{{ route('admin.products.index') }}" wire:navigate x-on:click="mobileOpen = false" @class(['px-3 py-2 text-sm font-medium transition rounded-lg', 'text-gold-700 bg-gold-50 dark:text-gold-400 dark:bg-gold-900/20' => request()->routeIs('admin.products.index'), 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800' => ! request()->routeIs('admin.products.index')])>Products</a>
                 <a href="{{ route('admin.orders.index') }}" wire:navigate x-on:click="mobileOpen = false" @class(['px-3 py-2 text-sm font-medium transition rounded-lg', 'text-gold-700 bg-gold-50 dark:text-gold-400 dark:bg-gold-900/20' => request()->routeIs('admin.orders.index'), 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800' => ! request()->routeIs('admin.orders.index')])>Orders</a>
+                <a href="{{ route('admin.business-settings') }}" wire:navigate x-on:click="mobileOpen = false" @class(['px-3 py-2 text-sm font-medium transition rounded-lg', 'text-gold-700 bg-gold-50 dark:text-gold-400 dark:bg-gold-900/20' => request()->routeIs('admin.business-settings'), 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800' => ! request()->routeIs('admin.business-settings')])>Settings</a>
             </nav>
 
             {{-- Theme Selection --}}
