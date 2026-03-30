@@ -3,13 +3,26 @@
 use App\Models\Order;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\WithoutUrlPagination;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.customer'), Title('My Orders')] class extends Component {
+new #[Layout('layouts.customer'), Title('My Orders'), WithoutUrlPagination] class extends Component {
     use WithPagination;
 
     public string $statusFilter = '';
+
+    public int $perPage = 10;
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
+    }
 
     public function with(): array
     {
@@ -20,7 +33,8 @@ new #[Layout('layouts.customer'), Title('My Orders')] class extends Component {
         }
 
         return [
-            'orders' => $query->paginate(10),
+            'orders' => $query->paginate($this->perPage),
+            'perPageOptions' => [5, 10, 25, 50],
         ];
     }
 }
@@ -43,7 +57,8 @@ new #[Layout('layouts.customer'), Title('My Orders')] class extends Component {
         </a>
     </div>
 
-    {{-- Status Filter --}}
+    {{-- Filters row: status + per-page --}}
+    <div class="flex flex-wrap items-center justify-between gap-3">
     <div class="flex flex-wrap gap-2">
         @foreach(['' => 'All Orders', 'pending' => 'Pending', 'processing' => 'Processing', 'ready' => 'Ready', 'completed' => 'Completed', 'cancelled' => 'Cancelled'] as $value => $label)
             <button
@@ -57,6 +72,14 @@ new #[Layout('layouts.customer'), Title('My Orders')] class extends Component {
                 {{ $label }}
             </button>
         @endforeach
+    </div>
+        <select wire:model.live="perPage" class="px-3 py-1.5 text-sm border rounded-lg bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="5">5 / page</option>
+            <option value="10">10 / page</option>
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+        </select>
     </div>
 
     {{-- Orders List --}}
@@ -121,7 +144,7 @@ new #[Layout('layouts.customer'), Title('My Orders')] class extends Component {
             @endforeach
 
             <div>
-                {{ $orders->links() }}
+                {{ $orders->links(data: ['scrollTo' => false]) }}
             </div>
         </div>
     @endif

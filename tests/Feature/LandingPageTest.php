@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Category;
 use App\Models\Setting;
 use App\Models\User;
+use Livewire\Livewire;
 
 beforeEach(function () {
     Setting::create(['key' => 'bakery_name', 'value' => 'ONLINE BAKERY ORDERING SYSTEM']);
@@ -30,12 +32,16 @@ it('displays all landing page sections', function () {
 });
 
 it('displays menu categories', function () {
-    $response = $this->get(route('home'));
+    Category::factory()->create(['name' => 'Bread', 'is_active' => true]);
+    Category::factory()->create(['name' => 'Cakes', 'is_active' => true]);
+    Category::factory()->create(['name' => 'Pastries', 'is_active' => true]);
+    Category::factory()->create(['name' => 'Cookies', 'is_active' => true]);
 
-    $response->assertSee('Bread');
-    $response->assertSee('Cakes');
-    $response->assertSee('Pastries');
-    $response->assertSee('Cookies');
+    Livewire::test('public-product-showcase')
+        ->assertSee('Bread')
+        ->assertSee('Cakes')
+        ->assertSee('Pastries')
+        ->assertSee('Cookies');
 });
 
 it('displays feature cards', function () {

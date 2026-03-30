@@ -83,7 +83,7 @@
         {{-- Bottom Bar --}}
         <div class="pt-8 mt-12 border-t border-zinc-800">
             <p class="text-sm text-center text-zinc-500">
-                &copy; {{ date('Y') }} {{ $bakeryName }}. All rights reserved.
+                CodeHub.Site | &copy; {{ date('Y') }} {{ $bakeryName }}. All rights reserved.
             </p>
         </div>
     </div>

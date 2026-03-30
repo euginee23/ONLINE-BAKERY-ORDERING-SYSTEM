@@ -5,16 +5,19 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\WithoutUrlPagination;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.admin'), Title('Manage Products')] class extends Component {
+new #[Layout('layouts.admin'), Title('Manage Products'), WithoutUrlPagination] class extends Component {
     use WithFileUploads, WithPagination;
 
     public string $search = '';
 
     public string $categoryFilter = '';
+
+    public int $perPage = 10;
 
     public bool $showModal = false;
 
@@ -44,6 +47,11 @@ new #[Layout('layouts.admin'), Title('Manage Products')] class extends Component
     }
 
     public function updatedCategoryFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
     {
         $this->resetPage();
     }
@@ -148,7 +156,7 @@ new #[Layout('layouts.admin'), Title('Manage Products')] class extends Component
         }
 
         return [
-            'products' => $query->latest()->paginate(10),
+            'products' => $query->latest()->paginate($this->perPage),
             'categories' => Category::orderBy('sort_order')->get(),
             'totalProducts' => Product::count(),
             'availableProducts' => Product::where('is_available', true)->count(),
@@ -249,7 +257,7 @@ new #[Layout('layouts.admin'), Title('Manage Products')] class extends Component
             </div>
         </div>
         <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {{-- Search --}}
                 <div>
                     <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">{{ __('Search') }}</label>
@@ -279,6 +287,20 @@ new #[Layout('layouts.admin'), Title('Manage Products')] class extends Component
                         @foreach ($categories as $cat)
                             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                         @endforeach
+                    </select>
+                </div>
+
+                {{-- Per Page --}}
+                <div>
+                    <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">{{ __('Per Page') }}</label>
+                    <select
+                        wire:model.live="perPage"
+                        class="w-full px-4 py-3 border border-zinc-300 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all appearance-none"
+                    >
+                        <option value="10">10 / page</option>
+                        <option value="25">25 / page</option>
+                        <option value="50">50 / page</option>
+                        <option value="100">100 / page</option>
                     </select>
                 </div>
             </div>
@@ -426,11 +448,8 @@ new #[Layout('layouts.admin'), Title('Manage Products')] class extends Component
 
         {{-- Pagination --}}
         @if ($products->hasPages())
-            <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-                <div class="text-sm text-zinc-600 dark:text-zinc-400">
-                    {{ __('Showing') }} <span class="font-medium">{{ $products->firstItem() }}</span> {{ __('to') }} <span class="font-medium">{{ $products->lastItem() }}</span> {{ __('of') }} <span class="font-medium">{{ $products->total() }}</span>
-                </div>
-                <div>{{ $products->links() }}</div>
+            <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+                {{ $products->links(data: ['scrollTo' => false]) }}
             </div>
         @endif
     </div>

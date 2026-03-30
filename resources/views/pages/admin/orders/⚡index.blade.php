@@ -4,15 +4,17 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\WithoutUrlPagination;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.admin'), Title('Manage Orders')] class extends Component {
+new #[Layout('layouts.admin'), Title('Manage Orders'), WithoutUrlPagination] class extends Component {
     use WithPagination;
 
     public string $statusFilter = '';
     public string $typeFilter = '';
     public string $search = '';
+    public int $perPage = 15;
 
     public function updatingStatusFilter(): void
     {
@@ -25,6 +27,11 @@ new #[Layout('layouts.admin'), Title('Manage Orders')] class extends Component {
     }
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
     {
         $this->resetPage();
     }
@@ -54,7 +61,7 @@ new #[Layout('layouts.admin'), Title('Manage Orders')] class extends Component {
         }
 
         return [
-            'orders' => $query->paginate(15),
+            'orders' => $query->paginate($this->perPage),
             'statusCounts' => collect(OrderStatus::cases())->mapWithKeys(
                 fn (OrderStatus $s) => [$s->value => Order::where('status', $s->value)->count()]
             ),
@@ -117,6 +124,13 @@ new #[Layout('layouts.admin'), Title('Manage Orders')] class extends Component {
             <option value="">All Types</option>
             <option value="delivery">Delivery</option>
             <option value="pickup">Pickup</option>
+        </select>
+        <select wire:model.live="perPage" class="px-3 py-2 text-sm border rounded-lg bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="10">10 / page</option>
+            <option value="15">15 / page</option>
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
         </select>
     </div>
 
@@ -199,7 +213,7 @@ new #[Layout('layouts.admin'), Title('Manage Orders')] class extends Component {
             </div>
 
             <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
-                {{ $orders->links() }}
+                {{ $orders->links(data: ['scrollTo' => false]) }}
             </div>
         @endif
     </div>

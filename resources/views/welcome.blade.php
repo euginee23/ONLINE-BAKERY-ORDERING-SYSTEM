@@ -35,40 +35,8 @@
                     </p>
                 </div>
 
-                {{-- Category Grid --}}
-                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <x-category-card
-                        icon="🍞"
-                        title="Bread"
-                        description="Artisan sourdough, whole wheat, baguettes, and more freshly baked every morning."
-                        :count="15"
-                    />
-                    <x-category-card
-                        icon="🎂"
-                        title="Cakes"
-                        description="Custom birthday cakes, wedding cakes, and specialty layer cakes for every occasion."
-                        :count="20"
-                    />
-                    <x-category-card
-                        icon="🥐"
-                        title="Pastries"
-                        description="Flaky croissants, Danish pastries, éclairs, and cream puffs made fresh daily."
-                        :count="12"
-                    />
-                    <x-category-card
-                        icon="🍪"
-                        title="Cookies"
-                        description="Chocolate chip, oatmeal raisin, butter cookies, and seasonal flavors available."
-                        :count="10"
-                    />
-                </div>
-
-                {{-- Featured Banner --}}
-                <div class="p-6 mt-12 text-center border rounded-2xl bg-gradient-to-r from-gold-50 via-white to-gold-50 border-gold-200 dark:from-gold-950/30 dark:via-zinc-900 dark:to-gold-950/30 dark:border-gold-800 sm:p-8">
-                    <p class="text-sm font-medium text-gold-600 dark:text-gold-400">⭐ Customer Favorite</p>
-                    <h3 class="mt-2 text-xl font-bold text-zinc-900 dark:text-white">Signature Sourdough Bread</h3>
-                    <p class="max-w-md mx-auto mt-2 text-sm text-zinc-600 dark:text-zinc-400">Our most loved product — slow-fermented for 24 hours with a crispy crust and soft interior.</p>
-                </div>
+                {{-- Product Showcase (lazy-loaded Livewire component) --}}
+                <livewire:public-product-showcase lazy />
             </div>
         </section>
 
@@ -238,9 +206,12 @@
 
         {{-- Auth Modals (guests only) --}}
         @guest
-            <x-auth-login-modal />
-            <x-auth-register-modal />
+            <livewire:auth-login-modal />
+            <livewire:auth-register-modal />
         @endguest
+
+        {{-- Notification Toast --}}
+        <x-notification-toast />
 
         {{-- Scroll to Top Button --}}
         <div

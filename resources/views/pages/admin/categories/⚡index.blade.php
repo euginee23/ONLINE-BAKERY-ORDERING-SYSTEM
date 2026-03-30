@@ -4,12 +4,15 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\WithoutUrlPagination;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
-new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Component {
+new #[Layout('layouts.admin'), Title('Manage Categories'), WithoutUrlPagination] class extends Component {
     use WithFileUploads, WithPagination;
+
+    public int $perPage = 10;
 
     public bool $showModal = false;
 
@@ -109,13 +112,18 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
         $this->dispatch('success', message: __('Category deleted successfully.'));
     }
 
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
+    }
+
     public function with(): array
     {
         return [
             'categories' => Category::withCount('products')
                 ->orderBy('sort_order')
                 ->orderBy('name')
-                ->paginate(10),
+                ->paginate($this->perPage),
             'totalCategories' => Category::count(),
             'activeCategories' => Category::where('is_active', true)->count(),
         ];
@@ -193,6 +201,13 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
                 <h3 class="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wide">{{ __('Categories List') }}</h3>
                 <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">({{ $categories->total() }} {{ __('total') }})</span>
             </div>
+            <div class="flex items-center gap-3">
+                <select wire:model.live="perPage" class="px-3 py-1.5 text-sm border rounded-lg bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gold-500">
+                    <option value="10">10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                </select>
             <button
                 wire:click="create"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-sm font-semibold rounded-xl shadow-lg transition-all cursor-pointer"
@@ -202,6 +217,7 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
                 </svg>
                 {{ __('Add Category') }}
             </button>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -305,11 +321,8 @@ new #[Layout('layouts.admin'), Title('Manage Categories')] class extends Compone
 
         {{-- Pagination --}}
         @if ($categories->hasPages())
-            <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-                <div class="text-sm text-zinc-600 dark:text-zinc-400">
-                    {{ __('Showing') }} <span class="font-medium">{{ $categories->firstItem() }}</span> {{ __('to') }} <span class="font-medium">{{ $categories->lastItem() }}</span> {{ __('of') }} <span class="font-medium">{{ $categories->total() }}</span>
-                </div>
-                <div>{{ $categories->links() }}</div>
+            <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+                {{ $categories->links(data: ['scrollTo' => false]) }}
             </div>
         @endif
     </div>
