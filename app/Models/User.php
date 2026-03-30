@@ -79,4 +79,9 @@ class User extends Authenticatable
     {
         return $this->role !== null && in_array($this->role->value, $roles);
     }
+
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }
