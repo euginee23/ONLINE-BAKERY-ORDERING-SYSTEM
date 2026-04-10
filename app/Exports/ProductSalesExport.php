@@ -13,6 +13,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ProductSalesExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
 {
+    private float $grandTotal = 0;
+
     public function __construct(
         public ?string $dateFrom = null,
         public ?string $dateTo = null,
@@ -39,15 +41,19 @@ class ProductSalesExport implements FromCollection, ShouldAutoSize, WithHeadings
             $query->whereHas('product', fn ($q) => $q->where('category_id', $this->categoryId));
         }
 
-        return $query->groupBy('product_id')
+        $result = $query->groupBy('product_id')
             ->orderByRaw('SUM(subtotal) DESC')
             ->with('product.category')
             ->get();
+
+        $this->grandTotal = (float) $result->sum('total_revenue');
+
+        return $result;
     }
 
     public function headings(): array
     {
-        return ['#', 'Product', 'Category', 'Qty Sold', 'Revenue', 'Avg Price'];
+        return ['#', 'Product', 'Category', 'Qty Sold', 'Revenue', '% Share', 'Avg Price', 'Stock'];
     }
 
     /**
@@ -64,7 +70,9 @@ class ProductSalesExport implements FromCollection, ShouldAutoSize, WithHeadings
             $row->product->category->name ?? 'N/A',
             $row->total_quantity,
             number_format((float) $row->total_revenue, 2),
+            $this->grandTotal > 0 ? number_format((float) $row->total_revenue / $this->grandTotal * 100, 1).'%' : '0.0%',
             $row->total_quantity > 0 ? number_format((float) $row->total_revenue / $row->total_quantity, 2) : '0.00',
+            $row->product->stock,
         ];
     }
 

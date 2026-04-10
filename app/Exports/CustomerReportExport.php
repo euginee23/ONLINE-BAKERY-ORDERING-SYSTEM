@@ -40,6 +40,9 @@ class CustomerReportExport implements FromCollection, ShouldAutoSize, WithHeadin
                     $q->whereDate('created_at', '<=', $this->dateTo);
                 }
             }], 'total_amount')
+            ->withMax(['orders as last_order_at' => function ($q) {
+                $q->whereNotIn('status', ['cancelled']);
+            }], 'created_at')
             ->whereHas('orders', function ($q) {
                 $q->whereNotIn('status', ['cancelled']);
                 if ($this->dateFrom) {
@@ -55,7 +58,7 @@ class CustomerReportExport implements FromCollection, ShouldAutoSize, WithHeadin
 
     public function headings(): array
     {
-        return ['Customer', 'Email', 'Total Orders', 'Total Spent', 'Avg Order Value', 'Member Since'];
+        return ['Customer', 'Email', 'Total Orders', 'Total Spent', 'Avg Order Value', 'Last Order', 'Member Since'];
     }
 
     /**
@@ -69,6 +72,7 @@ class CustomerReportExport implements FromCollection, ShouldAutoSize, WithHeadin
             $user->total_orders,
             number_format((float) $user->total_spent, 2),
             $user->total_orders > 0 ? number_format((float) $user->total_spent / $user->total_orders, 2) : '0.00',
+            $user->last_order_at ? \Illuminate\Support\Carbon::parse($user->last_order_at)->format('M d, Y') : '',
             $user->created_at->format('M d, Y'),
         ];
     }

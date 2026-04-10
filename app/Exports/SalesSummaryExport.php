@@ -23,29 +23,26 @@ class SalesSummaryExport implements FromCollection, ShouldAutoSize, WithHeadings
     public function collection(): \Illuminate\Support\Collection
     {
         $query = Order::query()
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as order_count, SUM(total_amount) as revenue')
-            ->whereNotIn('status', ['cancelled']);
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->when($this->orderType, fn ($q) => $q->where('type', $this->orderType));
 
-        if ($this->dateFrom) {
-            $query->whereDate('created_at', '>=', $this->dateFrom);
-        }
-
-        if ($this->dateTo) {
-            $query->whereDate('created_at', '<=', $this->dateTo);
-        }
-
-        if ($this->orderType) {
-            $query->where('type', $this->orderType);
-        }
-
-        return $query->groupByRaw('DATE(created_at)')
+        return $query->selectRaw("
+                DATE(created_at) as date,
+                SUM(CASE WHEN type = 'delivery' AND status != 'cancelled' THEN 1 ELSE 0 END) as delivery_count,
+                SUM(CASE WHEN type = 'pickup' AND status != 'cancelled' THEN 1 ELSE 0 END) as pickup_count,
+                SUM(CASE WHEN status != 'cancelled' THEN 1 ELSE 0 END) as order_count,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_count,
+                SUM(CASE WHEN status != 'cancelled' THEN total_amount ELSE 0 END) as revenue
+            ")
+            ->groupByRaw('DATE(created_at)')
             ->orderByRaw('DATE(created_at)')
             ->get();
     }
 
     public function headings(): array
     {
-        return ['Date', 'Total Orders', 'Revenue', 'Avg Order Value'];
+        return ['Date', 'Delivery', 'Pickup', 'Total Orders', 'Cancelled', 'Revenue', 'Avg Order Value'];
     }
 
     /**
@@ -55,7 +52,10 @@ class SalesSummaryExport implements FromCollection, ShouldAutoSize, WithHeadings
     {
         return [
             Carbon::parse($row->date)->format('M d, Y'),
+            $row->delivery_count,
+            $row->pickup_count,
             $row->order_count,
+            $row->cancelled_count,
             number_format((float) $row->revenue, 2),
             $row->order_count > 0 ? number_format((float) $row->revenue / $row->order_count, 2) : '0.00',
         ];

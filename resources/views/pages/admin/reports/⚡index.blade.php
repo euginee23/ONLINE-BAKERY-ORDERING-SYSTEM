@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -68,11 +69,45 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
 
     public function with(): array
     {
-        $previewData = $this->getPreviewData();
+        return [
+            'previewData' => $this->getPreviewData(),
+            'overallStats' => $this->getOverallStats(),
+            'categories' => Category::where('is_active', true)->orderBy('name')->get(),
+        ];
+    }
+
+    private function getOverallStats(): array
+    {
+        $stats = Order::query()
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->selectRaw("
+                SUM(CASE WHEN status != 'cancelled' THEN total_amount ELSE 0 END) as revenue,
+                SUM(CASE WHEN status != 'cancelled' THEN 1 ELSE 0 END) as active_orders,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
+                SUM(CASE WHEN status = 'ready' THEN 1 ELSE 0 END) as ready,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+                SUM(CASE WHEN type = 'delivery' AND status != 'cancelled' THEN 1 ELSE 0 END) as delivery_count,
+                SUM(CASE WHEN type = 'pickup' AND status != 'cancelled' THEN 1 ELSE 0 END) as pickup_count
+            ")
+            ->first();
+
+        $revenue = (float) ($stats->revenue ?? 0);
+        $activeOrders = (int) ($stats->active_orders ?? 0);
 
         return [
-            'previewData' => $previewData,
-            'categories' => Category::where('is_active', true)->orderBy('name')->get(),
+            'revenue' => $revenue,
+            'activeOrders' => $activeOrders,
+            'avgOrderValue' => $activeOrders > 0 ? $revenue / $activeOrders : 0,
+            'pending' => (int) ($stats->pending ?? 0),
+            'processing' => (int) ($stats->processing ?? 0),
+            'ready' => (int) ($stats->ready ?? 0),
+            'completed' => (int) ($stats->completed ?? 0),
+            'cancelled' => (int) ($stats->cancelled ?? 0),
+            'deliveryCount' => (int) ($stats->delivery_count ?? 0),
+            'pickupCount' => (int) ($stats->pickup_count ?? 0),
         ];
     }
 
@@ -90,77 +125,105 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
 
     private function getSalesSummaryPreview(): array
     {
-        $query = Order::query()
-            ->whereNotIn('status', ['cancelled'])
+        $base = Order::query()
             ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->when($this->orderTypeFilter, fn ($q) => $q->where('type', $this->orderTypeFilter));
 
-        $totalRevenue = (float) (clone $query)->sum('total_amount');
-        $totalOrders = (clone $query)->count();
+        $nonCancelled = (clone $base)->whereNotIn('status', ['cancelled']);
+        $totalRevenue = (float) (clone $nonCancelled)->sum('total_amount');
+        $totalOrders = (clone $nonCancelled)->count();
+        $deliveryRevenue = (float) (clone $nonCancelled)->where('type', 'delivery')->sum('total_amount');
+        $pickupRevenue = (float) (clone $nonCancelled)->where('type', 'pickup')->sum('total_amount');
 
-        $rows = (clone $query)
-            ->selectRaw("DATE(created_at) as date, COUNT(*) as order_count, SUM(total_amount) as revenue")
+        $rows = (clone $base)
+            ->selectRaw("
+                DATE(created_at) as date,
+                SUM(CASE WHEN type = 'delivery' AND status != 'cancelled' THEN 1 ELSE 0 END) as delivery_count,
+                SUM(CASE WHEN type = 'pickup' AND status != 'cancelled' THEN 1 ELSE 0 END) as pickup_count,
+                SUM(CASE WHEN status != 'cancelled' THEN 1 ELSE 0 END) as order_count,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_count,
+                SUM(CASE WHEN status != 'cancelled' THEN total_amount ELSE 0 END) as revenue
+            ")
             ->groupByRaw('DATE(created_at)')
             ->orderByRaw('DATE(created_at) DESC')
             ->limit(15)
             ->get()
             ->map(fn ($row) => [
                 Carbon::parse($row->date)->format('M d, Y'),
+                $row->delivery_count ?: '—',
+                $row->pickup_count ?: '—',
                 $row->order_count,
-                '₱' . number_format((float) $row->revenue, 2),
-                '₱' . number_format($row->order_count > 0 ? (float) $row->revenue / $row->order_count : 0, 2),
+                $row->cancelled_count ?: '—',
+                '₱'.number_format((float) $row->revenue, 2),
+                '₱'.number_format($row->order_count > 0 ? (float) $row->revenue / $row->order_count : 0, 2),
             ])
             ->toArray();
 
         return [
-            'headings' => ['Date', 'Orders', 'Revenue', 'Avg Value'],
+            'headings' => ['Date', 'Delivery', 'Pickup', 'Total Orders', 'Cancelled', 'Revenue', 'Avg / Order'],
             'rows' => $rows,
             'summary' => [
-                ['label' => 'Total Revenue', 'value' => '₱' . number_format($totalRevenue, 2)],
+                ['label' => 'Total Revenue', 'value' => '₱'.number_format($totalRevenue, 2)],
                 ['label' => 'Total Orders', 'value' => number_format($totalOrders)],
-                ['label' => 'Avg Order Value', 'value' => '₱' . number_format($totalOrders > 0 ? $totalRevenue / $totalOrders : 0, 2)],
+                ['label' => 'Delivery Revenue', 'value' => '₱'.number_format($deliveryRevenue, 2)],
+                ['label' => 'Pickup Revenue', 'value' => '₱'.number_format($pickupRevenue, 2)],
+                ['label' => 'Avg Order Value', 'value' => '₱'.number_format($totalOrders > 0 ? $totalRevenue / $totalOrders : 0, 2)],
             ],
         ];
     }
 
     private function getOrdersPreview(): array
     {
-        $query = Order::with(['user', 'items'])
+        $query = Order::with(['user', 'items.product'])
             ->latest()
             ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
             ->when($this->orderTypeFilter, fn ($q) => $q->where('type', $this->orderTypeFilter));
 
-        $total = (clone $query)->count();
+        $totalOrders = (clone $query)->count();
+        $totalRevenue = (float) (clone $query)->whereNotIn('status', ['cancelled'])->sum('total_amount');
+        $pendingCount = (clone $query)->where('status', OrderStatus::Pending)->count();
+        $completedCount = (clone $query)->where('status', OrderStatus::Completed)->count();
+        $cancelledCount = (clone $query)->where('status', OrderStatus::Cancelled)->count();
 
         $rows = (clone $query)
             ->limit(15)
             ->get()
             ->map(fn (Order $o) => [
-                '#' . $o->id,
+                '#'.$o->id,
                 $o->created_at->format('M d, Y'),
+                $o->created_at->format('h:i A'),
                 $o->user->name,
+                $o->user->email,
                 $o->type->label(),
                 $o->status->label(),
-                $o->items->count() . ' items',
-                '₱' . number_format((float) $o->total_amount, 2),
+                Str::limit(
+                    $o->items->map(fn ($i) => $i->quantity.'× '.$i->product->name)->implode(', '),
+                    60,
+                ),
+                $o->notes ? Str::limit($o->notes, 30) : '—',
+                '₱'.number_format((float) $o->total_amount, 2),
             ])
             ->toArray();
 
         return [
-            'headings' => ['Order', 'Date', 'Customer', 'Type', 'Status', 'Items', 'Total'],
+            'headings' => ['Order #', 'Date', 'Time', 'Customer', 'Email', 'Type', 'Status', 'Items Ordered', 'Notes', 'Total'],
             'rows' => $rows,
             'summary' => [
-                ['label' => 'Total Orders', 'value' => number_format($total)],
+                ['label' => 'Total Orders', 'value' => number_format($totalOrders)],
+                ['label' => 'Revenue', 'value' => '₱'.number_format($totalRevenue, 2)],
+                ['label' => 'Pending', 'value' => number_format($pendingCount)],
+                ['label' => 'Completed', 'value' => number_format($completedCount)],
+                ['label' => 'Cancelled', 'value' => number_format($cancelledCount)],
             ],
         ];
     }
 
     private function getProductSalesPreview(): array
     {
-        $query = OrderItem::query()
+        $items = OrderItem::query()
             ->selectRaw('product_id, SUM(quantity) as total_quantity, SUM(subtotal) as total_revenue')
             ->whereHas('order', function ($q) {
                 $q->whereNotIn('status', ['cancelled']);
@@ -178,25 +241,33 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
             ->limit(15)
             ->get();
 
-        $rows = $query->map(fn ($row, $index) => [
+        $grandTotal = (float) $items->sum('total_revenue');
+
+        $rows = $items->map(fn ($row, $index) => [
             $index + 1,
             $row->product->name,
-            $row->product->category->name ?? 'N/A',
-            $row->total_quantity,
-            '₱' . number_format((float) $row->total_revenue, 2),
+            $row->product->category->name ?? '—',
+            number_format((int) $row->total_quantity),
+            '₱'.number_format((float) $row->total_revenue, 2),
+            $grandTotal > 0 ? number_format((float) $row->total_revenue / $grandTotal * 100, 1).'%' : '—',
+            '₱'.number_format($row->total_quantity > 0 ? (float) $row->total_revenue / $row->total_quantity : 0, 2),
+            $row->product->stock.' left',
         ])->toArray();
 
         return [
-            'headings' => ['#', 'Product', 'Category', 'Qty Sold', 'Revenue'],
+            'headings' => ['#', 'Product', 'Category', 'Qty Sold', 'Revenue', '% Share', 'Avg Price', 'Stock'],
             'rows' => $rows,
-            'summary' => [],
+            'summary' => [
+                ['label' => 'Total Revenue', 'value' => '₱'.number_format($grandTotal, 2)],
+                ['label' => 'Products Tracked', 'value' => number_format($items->count())],
+            ],
         ];
     }
 
     private function getCategorySalesPreview(): array
     {
         $rows = OrderItem::query()
-            ->selectRaw('categories.name as category_name, SUM(order_items.quantity) as total_quantity, SUM(order_items.subtotal) as total_revenue, COUNT(DISTINCT order_items.order_id) as order_count')
+            ->selectRaw('products.category_id, categories.name as category_name, SUM(order_items.quantity) as total_quantity, SUM(order_items.subtotal) as total_revenue, COUNT(DISTINCT order_items.order_id) as order_count')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
@@ -205,25 +276,32 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
             ->when($this->dateTo, fn ($q) => $q->whereDate('orders.created_at', '<=', $this->dateTo))
             ->groupBy('products.category_id', 'categories.name')
             ->orderByRaw('SUM(order_items.subtotal) DESC')
-            ->get()
-            ->map(fn ($row) => [
-                $row->category_name,
-                $row->order_count,
-                $row->total_quantity,
-                '₱' . number_format((float) $row->total_revenue, 2),
-            ])
-            ->toArray();
+            ->get();
+
+        $grandTotal = (float) $rows->sum('total_revenue');
+
+        $mappedRows = $rows->map(fn ($row) => [
+            $row->category_name,
+            number_format((int) $row->order_count),
+            number_format((int) $row->total_quantity),
+            '₱'.number_format((float) $row->total_revenue, 2),
+            $grandTotal > 0 ? number_format((float) $row->total_revenue / $grandTotal * 100, 1).'%' : '—',
+            '₱'.number_format($row->order_count > 0 ? (float) $row->total_revenue / $row->order_count : 0, 2),
+        ])->toArray();
 
         return [
-            'headings' => ['Category', 'Orders', 'Qty Sold', 'Revenue'],
-            'rows' => $rows,
-            'summary' => [],
+            'headings' => ['Category', 'Orders', 'Qty Sold', 'Revenue', '% Share', 'Avg / Order'],
+            'rows' => $mappedRows,
+            'summary' => [
+                ['label' => 'Total Revenue', 'value' => '₱'.number_format($grandTotal, 2)],
+                ['label' => 'Categories Active', 'value' => number_format($rows->count())],
+            ],
         ];
     }
 
     private function getCustomersPreview(): array
     {
-        $rows = User::query()
+        $query = User::query()
             ->where('role', 'customer')
             ->withCount(['orders as total_orders' => function ($q) {
                 $q->whereNotIn('status', ['cancelled']);
@@ -243,6 +321,9 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
                     $q->whereDate('created_at', '<=', $this->dateTo);
                 }
             }], 'total_amount')
+            ->withMax(['orders as last_order_at' => function ($q) {
+                $q->whereNotIn('status', ['cancelled']);
+            }], 'created_at')
             ->whereHas('orders', function ($q) {
                 $q->whereNotIn('status', ['cancelled']);
                 if ($this->dateFrom) {
@@ -253,19 +334,20 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
                 }
             })
             ->orderByDesc('total_spent')
-            ->limit(15)
-            ->get()
-            ->map(fn (User $u) => [
-                $u->name,
-                $u->email,
-                $u->total_orders,
-                '₱' . number_format((float) $u->total_spent, 2),
-                '₱' . number_format($u->total_orders > 0 ? (float) $u->total_spent / $u->total_orders : 0, 2),
-            ])
-            ->toArray();
+            ->limit(15);
+
+        $rows = $query->get()->map(fn (User $u) => [
+            $u->name,
+            $u->email,
+            number_format((int) $u->total_orders),
+            '₱'.number_format((float) $u->total_spent, 2),
+            '₱'.number_format($u->total_orders > 0 ? (float) $u->total_spent / $u->total_orders : 0, 2),
+            $u->last_order_at ? Carbon::parse($u->last_order_at)->format('M d, Y') : '—',
+            $u->created_at->format('M d, Y'),
+        ])->toArray();
 
         return [
-            'headings' => ['Customer', 'Email', 'Orders', 'Total Spent', 'Avg Value'],
+            'headings' => ['Customer', 'Email', 'Orders', 'Total Spent', 'Avg / Order', 'Last Order', 'Member Since'],
             'rows' => $rows,
             'summary' => [],
         ];
@@ -279,17 +361,23 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">Reports</h1>
-            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Generate and export business reports.</p>
+            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                @if($dateFrom && $dateTo)
+                    Period: {{ \Illuminate\Support\Carbon::parse($dateFrom)->format('M d, Y') }} — {{ \Illuminate\Support\Carbon::parse($dateTo)->format('M d, Y') }}
+                @else
+                    All-time data. Use filters to narrow the period.
+                @endif
+            </p>
         </div>
         <flux:button wire:click="export" variant="primary" icon="arrow-down-tray">
             Export to Excel
         </flux:button>
     </div>
 
-    {{-- Report Type & Filters --}}
+    {{-- Filters --}}
     <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
+        <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-4">Filters</p>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {{-- Report Type --}}
             <flux:field>
                 <flux:label>Report Type</flux:label>
                 <flux:select wire:model.live="reportType">
@@ -301,19 +389,16 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
                 </flux:select>
             </flux:field>
 
-            {{-- Date From --}}
             <flux:field>
                 <flux:label>Date From</flux:label>
                 <flux:input type="date" wire:model.live="dateFrom" />
             </flux:field>
 
-            {{-- Date To --}}
             <flux:field>
                 <flux:label>Date To</flux:label>
                 <flux:input type="date" wire:model.live="dateTo" />
             </flux:field>
 
-            {{-- Conditional Filters --}}
             @if(in_array($reportType, ['sales_summary', 'orders']))
                 <flux:field>
                     <flux:label>Order Type</flux:label>
@@ -352,13 +437,113 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
         </div>
     </div>
 
-    {{-- Summary Cards --}}
+    {{-- Period KPI Strip --}}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="col-span-2 sm:col-span-1 bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-5">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-linear-to-br from-amber-500 to-orange-600 rounded-xl shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                </div>
+                <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Revenue</p>
+            </div>
+            <p class="text-2xl font-bold text-zinc-900 dark:text-white">₱{{ number_format($overallStats['revenue'], 2) }}</p>
+            <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">excl. cancelled</p>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-5">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Orders</p>
+            </div>
+            <p class="text-2xl font-bold text-zinc-900 dark:text-white">{{ number_format($overallStats['activeOrders']) }}</p>
+            <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">non-cancelled</p>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-5">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-linear-to-br from-emerald-500 to-green-600 rounded-xl shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Avg Value</p>
+            </div>
+            <p class="text-2xl font-bold text-zinc-900 dark:text-white">₱{{ number_format($overallStats['avgOrderValue'], 2) }}</p>
+            <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">per order</p>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-5">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-linear-to-br from-violet-500 to-purple-600 rounded-xl shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                </div>
+                <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Delivery</p>
+            </div>
+            <p class="text-2xl font-bold text-zinc-900 dark:text-white">{{ number_format($overallStats['deliveryCount']) }}</p>
+            <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">delivery orders</p>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-5">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-linear-to-br from-rose-500 to-pink-600 rounded-xl shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Pickup</p>
+            </div>
+            <p class="text-2xl font-bold text-zinc-900 dark:text-white">{{ number_format($overallStats['pickupCount']) }}</p>
+            <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">pickup orders</p>
+        </div>
+    </div>
+
+    {{-- Order Status Breakdown --}}
+    <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-5">
+        <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-4">Order Status Breakdown</p>
+        <div class="flex flex-wrap gap-3">
+            <div class="flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span>
+                <span class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Pending</span>
+                <span class="text-sm font-bold text-yellow-900 dark:text-yellow-200">{{ $overallStats['pending'] }}</span>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>
+                <span class="text-sm font-medium text-blue-800 dark:text-blue-300">Processing</span>
+                <span class="text-sm font-bold text-blue-900 dark:text-blue-200">{{ $overallStats['processing'] }}</span>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-green-400 shrink-0"></span>
+                <span class="text-sm font-medium text-green-800 dark:text-green-300">Ready</span>
+                <span class="text-sm font-bold text-green-900 dark:text-green-200">{{ $overallStats['ready'] }}</span>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-700/50 border border-zinc-200 dark:border-zinc-600 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-zinc-400 shrink-0"></span>
+                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Completed</span>
+                <span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $overallStats['completed'] }}</span>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                <span class="w-2 h-2 rounded-full bg-red-400 shrink-0"></span>
+                <span class="text-sm font-medium text-red-800 dark:text-red-300">Cancelled</span>
+                <span class="text-sm font-bold text-red-900 dark:text-red-200">{{ $overallStats['cancelled'] }}</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Per-Report Summary Cards --}}
     @if(!empty($previewData['summary']))
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             @foreach($previewData['summary'] as $stat)
-                <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6 text-center">
-                    <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ $stat['label'] }}</p>
-                    <p class="mt-1 text-2xl font-bold text-zinc-900 dark:text-white">{{ $stat['value'] }}</p>
+                <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-4 text-center">
+                    <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{{ $stat['label'] }}</p>
+                    <p class="mt-1 text-xl font-bold text-zinc-900 dark:text-white">{{ $stat['value'] }}</p>
                 </div>
             @endforeach
         </div>
@@ -366,6 +551,22 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
 
     {{-- Preview Table --}}
     <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between gap-4">
+            @php
+                $reportLabels = [
+                    'sales_summary' => 'Sales Summary',
+                    'orders' => 'Orders Report',
+                    'product_sales' => 'Product Sales',
+                    'category_sales' => 'Category Sales',
+                    'customers' => 'Customer Report',
+                ];
+            @endphp
+            <h2 class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ $reportLabels[$reportType] ?? 'Report' }} · Preview
+            </h2>
+            <span class="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">Up to 15 rows · Export for full data</span>
+        </div>
+
         @if(empty($previewData['rows']))
             <div class="flex flex-col items-center justify-center py-20 text-center">
                 <div class="mb-4 text-6xl">📊</div>
@@ -378,7 +579,7 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
                     <thead>
                         <tr class="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
                             @foreach($previewData['headings'] as $heading)
-                                <th class="px-4 py-3 text-left font-semibold text-zinc-700 dark:text-zinc-300">{{ $heading }}</th>
+                                <th class="px-4 py-3 text-left font-semibold text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{{ $heading }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -393,11 +594,6 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
                     </tbody>
                 </table>
             </div>
-            @if(count($previewData['rows']) >= 15)
-                <div class="px-4 py-3 text-center text-sm text-zinc-500 dark:text-zinc-400 border-t border-zinc-200 dark:border-zinc-700">
-                    Showing first 15 rows. Export to see all data.
-                </div>
-            @endif
         @endif
     </div>
 </div>

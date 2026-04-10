@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Order;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -45,7 +46,7 @@ class OrdersReportExport implements FromCollection, ShouldAutoSize, WithHeadings
 
     public function headings(): array
     {
-        return ['Order #', 'Date', 'Customer', 'Email', 'Type', 'Status', 'Items', 'Total'];
+        return ['Order #', 'Date', 'Time', 'Customer', 'Email', 'Type', 'Status', 'Item Count', 'Items Ordered', 'Notes', 'Total'];
     }
 
     /**
@@ -55,12 +56,18 @@ class OrdersReportExport implements FromCollection, ShouldAutoSize, WithHeadings
     {
         return [
             $order->id,
-            $order->created_at->format('M d, Y h:i A'),
+            $order->created_at->format('M d, Y'),
+            $order->created_at->format('h:i A'),
             $order->user->name,
             $order->user->email,
             $order->type->label(),
             $order->status->label(),
             $order->items->count(),
+            Str::limit(
+                $order->items->map(fn ($i) => $i->quantity.'× '.$i->product->name)->implode(', '),
+                100,
+            ),
+            $order->notes ?? '',
             number_format((float) $order->total_amount, 2),
         ];
     }

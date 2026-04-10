@@ -237,3 +237,101 @@ test('report type change resets filters', function () {
         ->assertSet('statusFilter', '')
         ->assertSet('orderTypeFilter', '');
 });
+
+test('overall stats returns all expected keys', function () {
+    $admin = User::factory()->admin()->create();
+    $customer = User::factory()->create();
+
+    Order::factory()->for($customer)->create(['status' => 'completed', 'total_amount' => 100.00, 'type' => 'delivery']);
+    Order::factory()->for($customer)->create(['status' => 'pending', 'total_amount' => 50.00, 'type' => 'pickup']);
+    Order::factory()->for($customer)->create(['status' => 'cancelled', 'total_amount' => 30.00, 'type' => 'delivery']);
+
+    $this->actingAs($admin);
+
+    $component = Livewire\Livewire::test('pages::admin.reports.index')
+        ->set('dateFrom', '')
+        ->set('dateTo', '');
+
+    $stats = $component->viewData('overallStats');
+
+    expect($stats)->toHaveKeys(['revenue', 'activeOrders', 'avgOrderValue', 'pending', 'processing', 'ready', 'completed', 'cancelled', 'deliveryCount', 'pickupCount']);
+    expect((float) $stats['revenue'])->toBe(150.00);
+    expect($stats['cancelled'])->toBe(1);
+    expect($stats['deliveryCount'])->toBe(1);
+    expect($stats['pickupCount'])->toBe(1);
+});
+
+test('customer report export includes last order column', function () {
+    $customer = User::factory()->create();
+
+    Order::factory()->for($customer)->create(['status' => 'completed', 'total_amount' => 100.00]);
+
+    $export = new CustomerReportExport;
+
+    expect($export->headings())->toContain('Last Order');
+
+    $collection = $export->collection();
+    $mapped = $export->map($collection->first());
+
+    expect($mapped)->toHaveCount(7);
+    expect($mapped[5])->not->toBeEmpty(); // Last Order date
+});
+
+test('orders report export includes time and items ordered columns', function () {
+    $customer = User::factory()->create();
+    $product = Product::factory()->create(['name' => 'Croissant']);
+    $order = Order::factory()->for($customer)->create(['status' => 'completed', 'total_amount' => 100.00]);
+    OrderItem::factory()->for($order)->for($product)->create(['quantity' => 2, 'subtotal' => 100.00]);
+
+    $export = new OrdersReportExport;
+    $headings = $export->headings();
+
+    expect($headings)->toContain('Time');
+    expect($headings)->toContain('Items Ordered');
+    expect($headings)->toContain('Notes');
+    expect($headings)->toHaveCount(11);
+
+    $collection = $export->collection();
+    $mapped = $export->map($collection->first());
+
+    expect($mapped[8])->toContain('Croissant'); // Items Ordered column
+});
+
+test('sales summary export includes delivery and pickup columns', function () {
+    $customer = User::factory()->create();
+    Order::factory()->for($customer)->create(['status' => 'completed', 'total_amount' => 200.00, 'type' => 'delivery']);
+
+    $export = new SalesSummaryExport;
+    $headings = $export->headings();
+
+    expect($headings)->toContain('Delivery');
+    expect($headings)->toContain('Pickup');
+    expect($headings)->toContain('Cancelled');
+    expect($headings)->toHaveCount(7);
+});
+
+test('product sales export includes percentage share column', function () {
+    $customer = User::factory()->create();
+    $product = Product::factory()->create();
+    $order = Order::factory()->for($customer)->create(['status' => 'completed']);
+    OrderItem::factory()->for($order)->for($product)->create(['subtotal' => 300.00]);
+
+    $export = new ProductSalesExport;
+
+    expect($export->headings())->toContain('% Share');
+    expect($export->headings())->toContain('Stock');
+    expect($export->headings())->toHaveCount(8);
+});
+
+test('category sales export includes percentage share column', function () {
+    $customer = User::factory()->create();
+    $category = Category::factory()->create();
+    $product = Product::factory()->for($category)->create();
+    $order = Order::factory()->for($customer)->create(['status' => 'completed']);
+    OrderItem::factory()->for($order)->for($product)->create(['subtotal' => 200.00]);
+
+    $export = new CategorySalesExport;
+
+    expect($export->headings())->toContain('% Share');
+    expect($export->headings())->toHaveCount(6);
+});
