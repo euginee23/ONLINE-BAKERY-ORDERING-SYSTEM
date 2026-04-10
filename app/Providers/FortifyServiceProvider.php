@@ -24,7 +24,7 @@ class FortifyServiceProvider extends ServiceProvider
         {
             public function toResponse($request): Response
             {
-                return redirect()->route('profile.edit');
+                return redirect()->route('verification.notice');
             }
         });
     }
@@ -54,6 +54,7 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         Fortify::loginView(fn () => redirect(route('home')));
+        Fortify::verifyEmailView(fn () => view('pages::auth.verify-email'));
         Fortify::confirmPasswordView(fn () => view('pages::auth.confirm-password'));
         Fortify::registerView(fn () => redirect(route('home')));
         Fortify::resetPasswordView(fn () => view('pages::auth.reset-password'));

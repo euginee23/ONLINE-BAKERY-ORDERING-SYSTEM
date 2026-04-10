@@ -2,11 +2,15 @@
 
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
+use App\Mail\NewOrderAlert;
+use App\Mail\OrderPlaced;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\User;
 use App\Models\UserAddress;
 use App\Services\CartService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -151,6 +155,14 @@ new #[Layout('layouts.customer'), Title('Checkout')] class extends Component {
         }
 
         $cart->clear();
+
+        $order->load(['items.product', 'user']);
+        Mail::to($order->user)->send(new OrderPlaced($order));
+
+        $admins = User::where('role', \App\Enums\UserRole::Admin)->get();
+        if ($admins->isNotEmpty()) {
+            Mail::to($admins)->send(new NewOrderAlert($order));
+        }
 
         $this->redirect(route('customer.order-detail', $order), navigate: true);
     }

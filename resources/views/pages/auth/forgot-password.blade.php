@@ -1,25 +1,28 @@
 <x-layouts::auth :title="__('Forgot password')">
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Forgot password')" :description="__('Enter your email to receive a password reset link')" />
+        <x-auth-header :title="__('Forgot password')" :description="__('Enter your registered email to receive a 6-digit reset code')" />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form method="POST" action="{{ route('password.email') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('password.code.send') }}" class="flex flex-col gap-6">
             @csrf
 
             <!-- Email Address -->
-            <flux:input
-                name="email"
-                :label="__('Email address')"
-                type="email"
-                required
-                autofocus
-                placeholder="email@example.com"
-            />
+            <flux:field>
+                <flux:input
+                    name="email"
+                    :label="__('Email address')"
+                    type="email"
+                    required
+                    autofocus
+                    placeholder="email@example.com"
+                />
+                <flux:error name="email" />
+            </flux:field>
 
             <flux:button variant="primary" type="submit" class="w-full" data-test="email-password-reset-link-button">
-                {{ __('Email password reset link') }}
+                {{ __('Send reset code') }}
             </flux:button>
         </form>
 

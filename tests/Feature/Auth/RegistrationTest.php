@@ -17,7 +17,7 @@ test('new users can register', function () {
     ]);
 
     $response->assertSessionHasNoErrors()
-        ->assertRedirect(route('profile.edit', absolute: false));
+        ->assertRedirect(route('verification.notice', absolute: false));
 
     $this->assertAuthenticated();
 });

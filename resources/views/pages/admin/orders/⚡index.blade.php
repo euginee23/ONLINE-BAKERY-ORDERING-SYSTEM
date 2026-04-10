@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\OrderStatus;
+use App\Mail\OrderStatusUpdated;
 use App\Models\Order;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\WithoutUrlPagination;
@@ -38,8 +40,13 @@ new #[Layout('layouts.admin'), Title('Manage Orders'), WithoutUrlPagination] cla
 
     public function updateStatus(int $orderId, string $status): void
     {
-        $order = Order::findOrFail($orderId);
+        $order = Order::with('user')->findOrFail($orderId);
+        $previousStatus = $order->status;
         $order->update(['status' => $status]);
+        $order->refresh();
+
+        Mail::to($order->user)->send(new OrderStatusUpdated($order, $previousStatus));
+
         $this->dispatch('notify', message: 'Order #' . $orderId . ' status updated.', type: 'success');
     }
 
