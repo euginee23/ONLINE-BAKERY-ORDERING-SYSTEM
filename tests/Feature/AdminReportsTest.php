@@ -10,7 +10,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
-use Maatwebsite\Excel\Facades\Excel;
 
 test('guests cannot access admin reports', function () {
     $this->get(route('admin.reports.index'))
@@ -56,7 +55,6 @@ test('admin can see sales summary preview', function () {
 
 test('admin can export sales summary report', function () {
     $this->freezeTime();
-    Excel::fake();
 
     $admin = User::factory()->admin()->create();
 
@@ -64,14 +62,12 @@ test('admin can export sales summary report', function () {
 
     Livewire\Livewire::test('pages::admin.reports.index')
         ->set('reportType', 'sales_summary')
-        ->call('export');
-
-    Excel::assertDownloaded('sales_summary_'.now()->format('Y-m-d_His').'.xlsx');
+        ->call('export')
+        ->assertFileDownloaded('sales_summary_'.now()->format('Y-m-d_His').'.xlsx');
 });
 
 test('admin can export orders report', function () {
     $this->freezeTime();
-    Excel::fake();
 
     $admin = User::factory()->admin()->create();
 
@@ -79,14 +75,12 @@ test('admin can export orders report', function () {
 
     Livewire\Livewire::test('pages::admin.reports.index')
         ->set('reportType', 'orders')
-        ->call('export');
-
-    Excel::assertDownloaded('orders_'.now()->format('Y-m-d_His').'.xlsx');
+        ->call('export')
+        ->assertFileDownloaded('orders_'.now()->format('Y-m-d_His').'.xlsx');
 });
 
 test('admin can export product sales report', function () {
     $this->freezeTime();
-    Excel::fake();
 
     $admin = User::factory()->admin()->create();
 
@@ -94,14 +88,12 @@ test('admin can export product sales report', function () {
 
     Livewire\Livewire::test('pages::admin.reports.index')
         ->set('reportType', 'product_sales')
-        ->call('export');
-
-    Excel::assertDownloaded('product_sales_'.now()->format('Y-m-d_His').'.xlsx');
+        ->call('export')
+        ->assertFileDownloaded('product_sales_'.now()->format('Y-m-d_His').'.xlsx');
 });
 
 test('admin can export category sales report', function () {
     $this->freezeTime();
-    Excel::fake();
 
     $admin = User::factory()->admin()->create();
 
@@ -109,14 +101,12 @@ test('admin can export category sales report', function () {
 
     Livewire\Livewire::test('pages::admin.reports.index')
         ->set('reportType', 'category_sales')
-        ->call('export');
-
-    Excel::assertDownloaded('category_sales_'.now()->format('Y-m-d_His').'.xlsx');
+        ->call('export')
+        ->assertFileDownloaded('category_sales_'.now()->format('Y-m-d_His').'.xlsx');
 });
 
 test('admin can export customer report', function () {
     $this->freezeTime();
-    Excel::fake();
 
     $admin = User::factory()->admin()->create();
 
@@ -124,9 +114,8 @@ test('admin can export customer report', function () {
 
     Livewire\Livewire::test('pages::admin.reports.index')
         ->set('reportType', 'customers')
-        ->call('export');
-
-    Excel::assertDownloaded('customers_'.now()->format('Y-m-d_His').'.xlsx');
+        ->call('export')
+        ->assertFileDownloaded('customers_'.now()->format('Y-m-d_His').'.xlsx');
 });
 
 test('sales summary export returns correct data', function () {

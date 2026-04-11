@@ -39,32 +39,21 @@ new #[Layout('layouts.admin'), Title('Reports')] class extends Component {
         $this->categoryFilter = null;
     }
 
-    public function export(): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function export(): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         $filename = $this->reportType . '_' . now()->format('Y-m-d_His') . '.xlsx';
 
-        return match ($this->reportType) {
-            'sales_summary' => Excel::download(
-                new SalesSummaryExport($this->dateFrom ?: null, $this->dateTo ?: null, $this->orderTypeFilter ?: null),
-                $filename,
-            ),
-            'orders' => Excel::download(
-                new OrdersReportExport($this->dateFrom ?: null, $this->dateTo ?: null, $this->statusFilter ?: null, $this->orderTypeFilter ?: null),
-                $filename,
-            ),
-            'product_sales' => Excel::download(
-                new ProductSalesExport($this->dateFrom ?: null, $this->dateTo ?: null, $this->categoryFilter),
-                $filename,
-            ),
-            'category_sales' => Excel::download(
-                new CategorySalesExport($this->dateFrom ?: null, $this->dateTo ?: null),
-                $filename,
-            ),
-            'customers' => Excel::download(
-                new CustomerReportExport($this->dateFrom ?: null, $this->dateTo ?: null),
-                $filename,
-            ),
+        $export = match ($this->reportType) {
+            'sales_summary' => new SalesSummaryExport($this->dateFrom ?: null, $this->dateTo ?: null, $this->orderTypeFilter ?: null),
+            'orders' => new OrdersReportExport($this->dateFrom ?: null, $this->dateTo ?: null, $this->statusFilter ?: null, $this->orderTypeFilter ?: null),
+            'product_sales' => new ProductSalesExport($this->dateFrom ?: null, $this->dateTo ?: null, $this->categoryFilter),
+            'category_sales' => new CategorySalesExport($this->dateFrom ?: null, $this->dateTo ?: null),
+            'customers' => new CustomerReportExport($this->dateFrom ?: null, $this->dateTo ?: null),
         };
+
+        return response()->streamDownload(function () use ($export) {
+            echo Excel::raw($export, \Maatwebsite\Excel\Excel::XLSX);
+        }, $filename);
     }
 
     public function with(): array
